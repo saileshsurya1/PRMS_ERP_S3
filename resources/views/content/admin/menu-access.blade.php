@@ -1,0 +1,8 @@
+@extends('layouts/layoutMaster')
+@section('title', 'Employee menu access')
+@section('content')
+<div class="mb-4"><h4>Employee-wise menu access</h4><p class="text-muted">Select an employee, tick the menus they may use, then save. Unticked menus are hidden and protected.</p></div>
+@if(session('status'))<div class="alert alert-success">{{ session('status') }}</div>@endif
+<div class="card"><div class="card-body"><form method="POST" action="{{ route('admin.menu-access.update') }}">@csrf<select class="form-select mb-4" name="user_id" id="employee-select" required><option value="">Choose employee</option>@foreach($users as $user)<option value="{{ $user->id }}">{{ $user->name }} ({{ str_replace('_', ' ', $user->role) }})</option>@endforeach</select><div class="row g-3">@foreach($menus as $menu)<div class="col-md-4"><label class="form-check"><input class="form-check-input menu-check" type="checkbox" name="menus[]" value="{{ $menu->id }}"><span class="form-check-label">{{ $menu->label }}<small class="d-block text-muted">{{ $menu->route }}</small></span></label></div>@endforeach</div><button class="btn btn-primary mt-4">Save employee access</button></form></div></div>
+@endsection
+@section('page-script')<script>const accessMap=@json($accesses->map(fn($items)=>$items->pluck('menu_item_id')->values())->toArray());const employee=document.getElementById('employee-select');const checks=[...document.querySelectorAll('.menu-check')];employee.addEventListener('change',()=>{const allowed=accessMap[employee.value]||[];checks.forEach(check=>check.checked=allowed.includes(Number(check.value)));});</script>@endsection

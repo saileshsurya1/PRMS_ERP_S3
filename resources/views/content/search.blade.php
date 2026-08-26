@@ -1,0 +1,6 @@
+@extends('layouts/layoutMaster')
+@section('title', 'Search')
+@section('content')
+<div class="mb-4"><h4>Search results</h4><p class="text-muted">Results for "{{ $term }}"</p></div>
+<div class="row g-4"><div class="col-lg-6"><div class="card"><div class="card-header"><h5 class="mb-0">Customers</h5></div><div class="list-group list-group-flush">@forelse($customers as $customer)<a class="list-group-item list-group-item-action" href="{{ route('customers.show', $customer) }}"><strong>{{ $customer->company_name }}</strong><small class="d-block text-muted">{{ $customer->customer_code }} · {{ $customer->contact_person }}</small></a>@empty<p class="p-3 text-muted mb-0">No customers found.</p>@endforelse</div></div></div><div class="col-lg-6"><div class="card"><div class="card-header"><h5 class="mb-0">RFQs</h5></div><div class="list-group list-group-flush">@forelse($rfqs as $rfq)<a class="list-group-item list-group-item-action" href="{{ route('customers.show', $rfq->customer) }}"><strong>{{ $rfq->rfq_number }}</strong><small class="d-block text-muted">{{ $rfq->customer->company_name }} · {{ ucfirst(str_replace('_', ' ', $rfq->current_status)) }}</small></a>@empty<p class="p-3 text-muted mb-0">No RFQs found.</p>@endforelse</div></div></div></div>
+@endsection
