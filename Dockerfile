@@ -1,6 +1,6 @@
-FROM php:8.3-fpm-alpine
+FROM php:8.2-fpm-alpine
 
-# Install system dependencies and required PHP extension libraries
+# Install system dependencies, MySQL extensions, and Node.js + NPM
 RUN apk add --no-cache \
     nginx \
     supervisor \
@@ -10,31 +10,37 @@ RUN apk add --no-cache \
     zip \
     unzip \
     git \
-    oniguruma-dev
+    oniguruma-dev \
+    nodejs \
+    npm
 
-# Install required PHP extensions for Laravel and MySQL
+# Install exact PHP native extensions required for Laravel 12 & MySQL database pipelines
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 
-# Install the latest stable version of Composer
+# Fetch the exact production-ready Composer utility binary safely
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Set working directory inside the container
+# Define working directory context inside container space
 WORKDIR /var/www
 
-# Copy all your local project files into the container
+# Copy the entire codebase structure across layers
 COPY . .
 
-# Run composer installation for production dependencies
+# Install PHP packages matching the composer.lock file structural signatures exactly
 RUN composer install --no-interaction --optimize-autoloader --no-dev
 
-# Set the correct permissions so Laravel can write logs and cache files
+# Install Node modules and run the Laravel Mix pipeline using npm run prod script
+RUN npm install
+RUN npm run prod
+
+# Enforce explicit standard write/cache directory permissions for Alpine processes
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
-# Copy your custom Nginx configuration file
+# Bind the custom Nginx server runtime blocks 
 COPY ./nginx.conf /etc/nginx/nginx.conf
 
-# Expose web port 80
+# Bind exposure targeting default HTTP web process layers 
 EXPOSE 80
 
-# Boot up both PHP-FPM and Nginx simultaneously
-CMD php-fpm -D && nginx -g "daemon off;"
+# Automate migrations sequentially before invoking Nginx & PHP FPM listeners concurrently
+CMD php artisan migrate --force && php-fpm -D && nginx -g "daemon off;"
