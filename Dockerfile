@@ -37,6 +37,9 @@ RUN npm run prod
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache \
     && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
+# ⚠️ FIX 1: Remove Alpine's default conflicting site configurations completely
+RUN rm -rf /etc/nginx/http.d/* /etc/nginx/conf.d/*
+
 # Bind the custom Nginx server runtime blocks 
 COPY ./nginx.conf /etc/nginx/nginx.conf
 
@@ -44,6 +47,7 @@ COPY ./nginx.conf /etc/nginx/nginx.conf
 EXPOSE 80
 
 # Automate cache clearing, storage symlink, migrations, seeding, and cache compilation on container deployment
+# ⚠️ FIX 2: Swapped the final Nginx execution to "exec nginx" to keep the web server persistently tracking in the foreground
 CMD php artisan config:clear \
     && php artisan cache:clear \
     && php artisan view:clear \
@@ -55,4 +59,4 @@ CMD php artisan config:clear \
     && php artisan route:cache \
     && php artisan view:cache \
     && php-fpm -D \
-    && nginx -g "daemon off;"
+    && exec nginx -g "daemon off;"
