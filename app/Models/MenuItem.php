@@ -26,16 +26,26 @@ class MenuItem extends Model
             return $query->whereRaw('1 = 0');
         }
 
-        if ($user->isAdmin()) {
+        if ($user->isAdmin() || $user->isOwner()) {
             return $query;
         }
 
-        return $query->whereHas('accesses', function (Builder $access) use ($user) {
-            $access->where(function (Builder $subject) use ($user) {
-                $subject->where(fn (Builder $q) => $q->where('subject_type', 'role')->where('subject_value', $user->role))
-                    ->orWhere(fn (Builder $q) => $q->where('subject_type', 'department')->where('subject_value', $user->department ?? ''))
-                    ->orWhere(fn (Builder $q) => $q->where('subject_type', 'user')->where('subject_value', (string) $user->id));
+        // Check if user has dedicated user-level access rules assigned
+        $hasUserSpecificRules = MenuAccess::where('subject_type', 'user')
+            ->where('subject_value', (string) $user->id)
+            ->exists();
+
+        if ($hasUserSpecificRules) {
+            return $query->whereHas('accesses', function (Builder $access) use ($user) {
+                $access->where('subject_type', 'user')
+                       ->where('subject_value', (string) $user->id);
             });
+        }
+
+        // Otherwise fallback to role-based access rules
+        return $query->whereHas('accesses', function (Builder $access) use ($user) {
+            $access->where('subject_type', 'role')
+                   ->where('subject_value', $user->role);
         });
     }
 }

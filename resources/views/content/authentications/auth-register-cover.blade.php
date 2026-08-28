@@ -5,26 +5,10 @@ $customizerHidden = 'customizer-hide';
 
 @extends('layouts/blankLayout')
 
-@section('title', 'Register Cover - Pages')
-
-@section('vendor-style')
-<!-- Vendor -->
-<link rel="stylesheet" href="{{asset('assets/vendor/libs/@form-validation/umd/styles/index.min.css')}}" />
-@endsection
+@section('title', 'Register - PRMS Workspace')
 
 @section('page-style')
-<!-- Page -->
 <link rel="stylesheet" href="{{asset('assets/vendor/css/pages/page-auth.css')}}">
-@endsection
-
-@section('vendor-script')
-<script src="{{asset('assets/vendor/libs/@form-validation/umd/bundle/popular.min.js')}}"></script>
-<script src="{{asset('assets/vendor/libs/@form-validation/umd/plugin-bootstrap5/index.min.js')}}"></script>
-<script src="{{asset('assets/vendor/libs/@form-validation/umd/plugin-auto-focus/index.min.js')}}"></script>
-@endsection
-
-@section('page-script')
-<script src="{{asset('assets/js/pages-auth.js')}}"></script>
 @endsection
 
 @section('content')
@@ -37,85 +21,117 @@ $customizerHidden = 'customizer-hide';
   <!-- /Logo -->
   <div class="authentication-inner row m-0">
 
-    <!-- /Left Text -->
-    <div class="d-none d-lg-flex col-lg-7 col-xl-8 align-items-center justify-content-center p-5 pb-2">
+    <!-- Left Illustration -->
+    <div class="d-none d-lg-flex col-lg-6 col-xl-7 align-items-center justify-content-center p-5 pb-2">
       <img src="{{asset('assets/img/illustrations/auth-register-illustration-'.$configData['style'].'.png') }}" class="auth-cover-illustration w-100" alt="auth-illustration" data-app-light-img="illustrations/auth-register-illustration-light.png" data-app-dark-img="illustrations/auth-register-illustration-dark.png" />
       <img src="{{asset('assets/img/illustrations/auth-cover-register-mask-'.$configData['style'].'.png') }}" class="authentication-image" alt="mask" data-app-light-img="illustrations/auth-cover-register-mask-light.png" data-app-dark-img="illustrations/auth-cover-register-mask-dark.png" />
     </div>
-    <!-- /Left Text -->
+    <!-- /Left Illustration -->
 
-    <!-- Register -->
-    <div class="d-flex col-12 col-lg-5 col-xl-4 align-items-center authentication-bg position-relative py-sm-5 px-4 py-4">
-      <div class="w-px-400 mx-auto pt-5 pt-lg-0">
-        <h4 class="mb-2">Adventure starts here 🚀</h4>
-        <p class="mb-4">Make your app management easy and fun!</p>
+    <!-- Register Form -->
+    <div class="d-flex col-12 col-lg-6 col-xl-5 align-items-center authentication-bg position-relative py-sm-5 px-4 py-4">
+      <div class="w-100 mx-auto" style="max-width: 480px;">
+        <h4 class="mb-1">Create an Account 🚀</h4>
+        <p class="text-muted mb-3">Join PRMS Workspace to manage sales pipelines and projects.</p>
 
-        <form id="formAuthentication" class="mb-3" action="{{ route('register.store') }}" method="POST">
-          @csrf
-          <div class="form-floating form-floating-outline mb-3">
-            <input type="text" class="form-control" id="name" name="name" placeholder="Enter your full name" autofocus required>
-            <label for="name">Full name</label>
-          </div>
-          <div class="form-floating form-floating-outline mb-3">
-            <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email" required>
-            <label for="email">Email</label>
-          </div>
-          <div class="mb-3 form-password-toggle">
-            <div class="input-group input-group-merge">
-              <div class="form-floating form-floating-outline">
-                <input type="password" id="password" class="form-control" name="password" placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;" aria-describedby="password" required />
-                <label for="password">Password</label>
+        @if ($errors->any())
+          <div class="alert alert-danger alert-dismissible mb-3" role="alert">
+            <div class="d-flex align-items-center gap-2">
+              <i class="mdi mdi-alert-circle-outline fs-5"></i>
+              <div>
+                <strong>Registration Error</strong>
+                <ul class="mb-0 ps-3">
+                  @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                  @endforeach
+                </ul>
               </div>
-              <span class="input-group-text cursor-pointer"><i class="mdi mdi-eye-off-outline"></i></span>
             </div>
           </div>
-          <div class="form-floating form-floating-outline mb-3"><input type="password" id="password_confirmation" class="form-control" name="password_confirmation" required><label for="password_confirmation">Confirm password</label></div>
+        @endif
+
+        <form id="formAuthentication" class="mb-3" action="{{ route('register.store') }}" method="POST" enctype="multipart/form-data">
+          @csrf
+
+          <div class="row g-2 mb-3">
+            <div class="col-md-6">
+              <div class="form-floating form-floating-outline">
+                <input type="text" class="form-control @error('first_name') is-invalid @enderror" id="first_name" name="first_name" value="{{ old('first_name') }}" placeholder="John" required autofocus>
+                <label for="first_name">First Name</label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-floating form-floating-outline">
+                <input type="text" class="form-control @error('last_name') is-invalid @enderror" id="last_name" name="last_name" value="{{ old('last_name') }}" placeholder="Doe" required>
+                <label for="last_name">Last Name</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-floating form-floating-outline mb-3">
+            <select class="form-select @error('role') is-invalid @enderror" id="role" name="role" required>
+              <option value="sales_engineer" @selected(old('role', 'sales_engineer') === 'sales_engineer')>Sales Engineer</option>
+              <option value="customer" @selected(old('role') === 'customer')>Customer</option>
+              <option value="owner" @selected(old('role') === 'owner')>Owner (Admin)</option>
+            </select>
+            <label for="role">Account Role</label>
+          </div>
+
+          <div class="form-floating form-floating-outline mb-3">
+            <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" name="email" value="{{ old('email') }}" placeholder="name@company.com" required>
+            <label for="email">Email Address</label>
+          </div>
+
+          <div class="form-floating form-floating-outline mb-3">
+            <input type="text" class="form-control @error('phone') is-invalid @enderror" id="phone" name="phone" value="{{ old('phone') }}" placeholder="+91 98765 43210">
+            <label for="phone">Phone Number</label>
+          </div>
+
+          <div class="form-floating form-floating-outline mb-3">
+            <textarea class="form-control @error('address') is-invalid @enderror" id="address" name="address" placeholder="Address" style="height: 65px;">{{ old('address') }}</textarea>
+            <label for="address">Address</label>
+          </div>
+
           <div class="mb-3">
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="terms-conditions" name="terms">
-              <label class="form-check-label" for="terms-conditions">
-                I agree to
-                <a href="javascript:void(0);">privacy policy & terms</a>
-              </label>
+            <label class="form-label text-muted small" for="photo">Profile Photo (optional)</label>
+            <input type="file" class="form-control @error('photo') is-invalid @enderror" id="photo" name="photo" accept="image/*">
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-md-6 form-password-toggle">
+              <div class="input-group input-group-merge">
+                <div class="form-floating form-floating-outline">
+                  <input type="password" id="password" class="form-control @error('password') is-invalid @enderror" name="password" placeholder="••••••••" required />
+                  <label for="password">Password</label>
+                </div>
+                <span class="input-group-text cursor-pointer"><i class="mdi mdi-eye-off-outline"></i></span>
+              </div>
+            </div>
+            <div class="col-md-6 form-password-toggle">
+              <div class="input-group input-group-merge">
+                <div class="form-floating form-floating-outline">
+                  <input type="password" id="password_confirmation" class="form-control" name="password_confirmation" placeholder="••••••••" required />
+                  <label for="password_confirmation">Confirm Password</label>
+                </div>
+                <span class="input-group-text cursor-pointer"><i class="mdi mdi-eye-off-outline"></i></span>
+              </div>
             </div>
           </div>
-          <button class="btn btn-primary d-grid w-100">
-            Sign up
+
+          <button type="submit" class="btn btn-primary d-grid w-100 mt-3">
+            Sign Up
           </button>
         </form>
-        @if ($errors->any())<div class="alert alert-danger">{{ $errors->first() }}</div>@endif
 
-        <p class="text-center mt-2">
+        <p class="text-center mt-3 mb-0">
           <span>Already have an account?</span>
           <a href="{{ route('login') }}">
             <span>Sign in instead</span>
           </a>
         </p>
-
-        <div class="divider my-4">
-          <div class="divider-text">or</div>
-        </div>
-
-        <div class="d-flex justify-content-center gap-2">
-          <a href="javascript:;" class="btn btn-icon btn-lg rounded-pill btn-text-facebook">
-            <i class="tf-icons mdi mdi-24px mdi-facebook"></i>
-          </a>
-
-          <a href="javascript:;" class="btn btn-icon btn-lg rounded-pill btn-text-twitter">
-            <i class="tf-icons mdi mdi-24px mdi-twitter"></i>
-          </a>
-
-          <a href="javascript:;" class="btn btn-icon btn-lg rounded-pill btn-text-github">
-            <i class="tf-icons mdi mdi-24px mdi-github"></i>
-          </a>
-
-          <a href="javascript:;" class="btn btn-icon btn-lg rounded-pill btn-text-google-plus">
-            <i class="tf-icons mdi mdi-24px mdi-google"></i>
-          </a>
-        </div>
       </div>
     </div>
-    <!-- /Register -->
+    <!-- /Register Form -->
   </div>
 </div>
 @endsection

@@ -161,11 +161,7 @@
           </tbody>
         </table>
       </div>
-      @if($complaints->hasPages())
-        <div class="card-footer">
-          {{ $complaints->links() }}
-        </div>
-      @endif
+      @include('partials.pagination', ['paginator' => $complaints])
     </div>
   </div>
 </div>

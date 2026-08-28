@@ -5,10 +5,15 @@
   <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
     <div>
       <span class="text-primary fw-semibold text-uppercase small">PRMS Workspace</span>
-      <h2 class="mt-1 mb-0">Welcome, {{ $user->name }}</h2>
-      <p class="text-muted mb-0">{{ $today->format('l, d F Y') }}</p>
+      <h2 class="mt-1 mb-0">{{ $greeting ?? 'Welcome' }}, {{ $user->first_name ?: $user->name }} 👋</h2>
+      <div class="d-flex flex-wrap align-items-center gap-3 mt-2 text-muted">
+        <span><i class="mdi mdi-calendar-blank-outline me-1"></i>{{ $today->format('l, d F Y') }}</span>
+        <span class="badge bg-label-primary px-3 py-1 font-monospace" style="font-size: 0.95rem;">
+          <i class="mdi mdi-clock-outline me-1"></i><span id="dashboard-live-clock">{{ $currentTime ?? $today->format('h:i:s A') }}</span>
+        </span>
+      </div>
     </div>
-    <div class="d-flex gap-2">
+    <div class="d-flex gap-2 mt-3 mt-md-0">
       <a href="{{ route('todos.index') }}" class="btn btn-primary">
         <i class="mdi mdi-checkbox-marked-circle-outline me-1"></i> Open Task Register
       </a>
@@ -62,6 +67,7 @@
             </div>
           @endforelse
         </div>
+        @include('partials.pagination', ['paginator' => $userTasks, 'pageName' => 'tasks_page', 'perPageParam' => 'tasks_per_page'])
       </div>
     </div>
 
@@ -98,8 +104,32 @@
             </div>
           @endforelse
         </div>
+        @include('partials.pagination', ['paginator' => $rfqTodos, 'pageName' => 'rfqs_page', 'perPageParam' => 'rfqs_per_page'])
       </div>
     </div>
   </div>
 </div>
 @endsection
+
+@push('page-script')
+<script>
+  (function() {
+    function updateLiveClock() {
+      const now = new Date();
+      let hours = now.getHours();
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? String(hours).padStart(2, '0') : '12';
+      const timeStr = `${hours}:${minutes}:${seconds} ${ampm}`;
+      const clockEl = document.getElementById('dashboard-live-clock');
+      if (clockEl) {
+        clockEl.textContent = timeStr;
+      }
+    }
+    setInterval(updateLiveClock, 1000);
+    updateLiveClock();
+  })();
+</script>
+@endpush

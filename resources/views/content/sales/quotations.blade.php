@@ -180,10 +180,6 @@
       </tbody>
     </table>
   </div>
-  @if($quotations->hasPages())
-    <div class="card-footer">
-      {{ $quotations->links() }}
-    </div>
-  @endif
+  @include('partials.pagination', ['paginator' => $quotations])
 </div>
 @endsection

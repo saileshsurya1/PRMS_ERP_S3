@@ -14,7 +14,7 @@ class TodoController extends Controller
     {
         $user = $request->user();
 
-        $query = Todo::with(['creator', 'assignedUser'])->latest('due_date');
+        $query = Todo::with(['creator', 'assignedUser'])->latest('id');
 
         // Non-admins see tasks created by them or assigned to them
         if (!$user->isAdmin() && !$user->isOwner()) {
@@ -51,7 +51,7 @@ class TodoController extends Controller
             });
         }
 
-        $todos = $query->paginate(15)->withQueryString();
+        $todos = $query->paginate($request->integer('per_page', 10))->withQueryString();
         $users = User::where('status', 'active')->orderBy('name')->get();
 
         return view('content.todos.index', compact('todos', 'users'));
@@ -81,7 +81,7 @@ class TodoController extends Controller
     public function update(Request $request, Todo $todo)
     {
         $user = $request->user();
-        if (!$user->isAdmin()) {
+        if (!$user->isAdmin() && !$user->isOwner()) {
             abort_unless($todo->user_id === $user->id || $todo->assigned_to_id === $user->id, 403);
         }
 
@@ -107,7 +107,7 @@ class TodoController extends Controller
     public function toggle(Request $request, Todo $todo)
     {
         $user = $request->user();
-        if (!$user->isAdmin()) {
+        if (!$user->isAdmin() && !$user->isOwner()) {
             abort_unless($todo->user_id === $user->id || $todo->assigned_to_id === $user->id, 403);
         }
 
@@ -125,7 +125,7 @@ class TodoController extends Controller
     public function destroy(Todo $todo)
     {
         $user = auth()->user();
-        if (!$user->isAdmin()) {
+        if (!$user->isAdmin() && !$user->isOwner()) {
             abort_unless($todo->user_id === $user->id || $todo->assigned_to_id === $user->id, 403);
         }
 

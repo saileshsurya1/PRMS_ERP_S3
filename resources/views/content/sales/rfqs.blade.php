@@ -206,10 +206,6 @@
       </tbody>
     </table>
   </div>
-  @if($rfqs->hasPages())
-    <div class="card-footer">
-      {{ $rfqs->links() }}
-    </div>
-  @endif
+  @include('partials.pagination', ['paginator' => $rfqs])
 </div>
 @endsection

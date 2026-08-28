@@ -15,10 +15,10 @@ use Illuminate\Validation\Rule;
 
 class AdminController extends Controller
 {
-    public function users()
+    public function users(Request $request)
     {
         return view('content.admin.users', [
-            'users' => User::with('customer')->orderBy('name')->paginate(15),
+            'users' => User::with('customer')->orderBy('name')->paginate($request->integer('per_page', 10))->withQueryString(),
             'customers' => Customer::orderBy('company_name')->get(),
             'departments' => Department::where('is_active', true)->orderBy('name')->get(),
         ]);
@@ -27,8 +27,12 @@ class AdminController extends Controller
     public function storeUser(Request $request)
     {
         $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'first_name' => ['nullable', 'string', 'max:120'],
+            'last_name' => ['nullable', 'string', 'max:120'],
+            'name' => ['nullable', 'string', 'max:255'],
             'email' => ['required', 'email', 'unique:users,email'],
+            'phone' => ['nullable', 'string', 'max:30'],
+            'address' => ['nullable', 'string', 'max:500'],
             'password' => ['required', 'string', 'min:8'],
             'role' => ['required', 'in:owner,sales_engineer,customer'],
             'status' => ['nullable', 'in:active,inactive'],
@@ -37,6 +41,13 @@ class AdminController extends Controller
             'customer_id' => ['nullable', 'required_if:role,customer', 'exists:customers,id'],
             'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:2048'],
         ]);
+
+        if (empty($data['name'])) {
+            $data['name'] = trim(($data['first_name'] ?? '') . ' ' . ($data['last_name'] ?? ''));
+            if (empty($data['name'])) {
+                $data['name'] = 'User';
+            }
+        }
 
         $monthlyTarget = $data['monthly_target'] ?? null;
         unset($data['monthly_target']);
@@ -51,6 +62,7 @@ class AdminController extends Controller
 
         $data['password'] = Hash::make($data['password']);
         $data['status'] = $data['status'] ?? 'active';
+        $data['active'] = ($data['status'] === 'active');
 
         $user = User::create($data);
 
@@ -68,8 +80,12 @@ class AdminController extends Controller
     public function updateUser(Request $request, User $user)
     {
         $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['nullable', 'string', 'max:255'],
+            'first_name' => ['nullable', 'string', 'max:120'],
+            'last_name' => ['nullable', 'string', 'max:120'],
             'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
+            'phone' => ['nullable', 'string', 'max:30'],
+            'address' => ['nullable', 'string', 'max:500'],
             'password' => ['nullable', 'string', 'min:8'],
             'role' => ['required', 'in:owner,sales_engineer,customer'],
             'status' => ['required', 'in:active,inactive'],
@@ -78,6 +94,10 @@ class AdminController extends Controller
             'customer_id' => ['nullable', 'required_if:role,customer', 'exists:customers,id'],
             'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:2048'],
         ]);
+
+        if (empty($data['name']) && (!empty($data['first_name']) || !empty($data['last_name']))) {
+            $data['name'] = trim(($data['first_name'] ?? '') . ' ' . ($data['last_name'] ?? ''));
+        }
 
         $monthlyTarget = $data['monthly_target'] ?? null;
         unset($data['monthly_target']);
@@ -99,6 +119,7 @@ class AdminController extends Controller
             unset($data['password']);
         }
 
+        $data['active'] = ($data['status'] === 'active');
         $user->update($data);
 
         if ($user->role === 'sales_engineer' && $monthlyTarget !== null) {
@@ -127,10 +148,10 @@ class AdminController extends Controller
         return back()->with('status', 'User deleted successfully.');
     }
 
-    public function menus()
+    public function menus(Request $request)
     {
         return view('content.admin.menus', [
-            'menus' => MenuItem::with('accesses')->orderBy('sort_order')->get(),
+            'menus' => MenuItem::with('accesses')->orderBy('sort_order')->paginate($request->integer('per_page', 10))->withQueryString(),
             'users' => User::orderBy('name')->get()
         ]);
     }
@@ -163,11 +184,13 @@ class AdminController extends Controller
 
     public function access()
     {
-        return view('content.admin.menu-access', [
-            'menus' => MenuItem::where('is_active', true)->orderBy('sort_order')->get(),
-            'users' => User::whereIn('role', ['sales_engineer', 'customer'])->orderBy('name')->get(),
-            'accesses' => MenuAccess::where('subject_type', 'user')->get()->groupBy('subject_value')
-        ]);
+        $menus = MenuItem::where('is_active', true)->orderBy('sort_order')->get();
+        $roles = ['sales_engineer', 'customer'];
+        $roleAccesses = MenuAccess::where('subject_type', 'role')->get()->groupBy('subject_value');
+        $users = User::whereIn('role', ['sales_engineer', 'customer'])->orderBy('name')->get();
+        $userAccesses = MenuAccess::where('subject_type', 'user')->get()->groupBy('subject_value');
+
+        return view('content.admin.menu-access', compact('menus', 'roles', 'roleAccesses', 'users', 'userAccesses'));
     }
 
     public function updateAccess(Request $request)
@@ -187,8 +210,29 @@ class AdminController extends Controller
             ]);
         }
 
-        $this->audit('updated_menu_access', User::class, $data['user_id']);
-        return back()->with('status', 'Employee menu access updated.');
+        $this->audit('updated_user_menu_access', User::class, $data['user_id']);
+        return back()->with('status', 'User-specific menu access updated successfully.');
+    }
+
+    public function updateRoleAccess(Request $request)
+    {
+        $data = $request->validate([
+            'role' => ['required', 'in:sales_engineer,customer'],
+            'menus' => ['nullable', 'array'],
+            'menus.*' => ['exists:menu_items,id']
+        ]);
+
+        MenuAccess::where('subject_type', 'role')->where('subject_value', $data['role'])->delete();
+        foreach ($data['menus'] ?? [] as $menuId) {
+            MenuAccess::create([
+                'menu_item_id' => $menuId,
+                'subject_type' => 'role',
+                'subject_value' => $data['role']
+            ]);
+        }
+
+        $this->audit('updated_role_menu_access', MenuItem::class, null, ['role' => $data['role']]);
+        return back()->with('status', ucfirst(str_replace('_', ' ', $data['role'])) . ' role menu access updated successfully.');
     }
 
     public function storeMenu(Request $request)

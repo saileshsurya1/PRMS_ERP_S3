@@ -23,9 +23,22 @@ class Analytics extends Controller
             return $this->customer($request);
         }
 
-        $today = Carbon::today();
+        $now = Carbon::now(config('app.timezone', 'Asia/Kolkata'));
+        $today = $now->copy()->startOfDay();
+
+        // Time-based greeting based on current local hour
+        $hour = $now->hour;
+        $greeting = match (true) {
+            $hour >= 5 && $hour < 12 => 'Good Morning',
+            $hour >= 12 && $hour < 17 => 'Good Afternoon',
+            $hour >= 17 && $hour < 21 => 'Good Evening',
+            default => 'Good Night',
+        };
+        $currentTime = $now->format('h:i:s A');
 
         // Fetch User and Team Todos (Active & Pending)
+        // Normal users: Own Todos only; Admin/Owner: All Todos
+        $perPageTasks = $request->integer('tasks_per_page', $request->integer('per_page', 10));
         $userTasks = Todo::query()
             ->when(!$user->isAdmin() && !$user->isOwner(), function ($query) use ($user) {
                 $query->where(function ($q) use ($user) {
@@ -35,10 +48,12 @@ class Analytics extends Controller
             ->where('status', '!=', 'completed')
             ->with(['creator', 'assignedUser'])
             ->orderByRaw('CASE WHEN due_date IS NULL THEN 1 ELSE 0 END, due_date ASC')
-            ->take(10)
-            ->get();
+            ->paginate($perPageTasks, ['*'], 'tasks_page')
+            ->withQueryString();
 
-        // Fetch RFQ Action items
+        // Fetch Quotation & RFQ Deadlines
+        // Normal users: Own Quotations/RFQs only; Admin/Owner: All records
+        $perPageRfqs = $request->integer('rfqs_per_page', $request->integer('per_page', 10));
         $rfqScope = Rfq::query()->whereIn('current_status', ['follow_up', 'follow_through']);
         if (!$user->isAdmin() && !$user->isOwner()) {
             $rfqScope->where('sales_engineer_id', $user->id);
@@ -46,10 +61,10 @@ class Analytics extends Controller
 
         $rfqTodos = $rfqScope->with('customer')
             ->orderByRaw('CASE WHEN quotation_submission_target_date IS NULL THEN 1 ELSE 0 END, quotation_submission_target_date ASC')
-            ->take(10)
-            ->get();
+            ->paginate($perPageRfqs, ['*'], 'rfqs_page')
+            ->withQueryString();
 
-        return view('content.dashboard.welcome', compact('user', 'today', 'userTasks', 'rfqTodos'));
+        return view('content.dashboard.welcome', compact('user', 'today', 'greeting', 'currentTime', 'userTasks', 'rfqTodos'));
     }
 
     public function owner(Request $request)
@@ -71,6 +86,19 @@ class Analytics extends Controller
         $statusData = (clone $rfqs)->selectRaw('current_status, count(*) as total')->groupBy('current_status')->pluck('total', 'current_status');
         $engineers = User::where('role', 'sales_engineer')->orderBy('name')->get();
         $review = app(SalesKpiService::class)->ownerReview($engineerId, $start, $end);
+
+        $perPage = $request->integer('per_page', 10);
+        $page = $request->integer('page', 1);
+        $allRows = $review['rows'];
+        $paginatedRows = new \Illuminate\Pagination\LengthAwarePaginator(
+            $allRows->forPage($page, $perPage)->values(),
+            $allRows->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+        $review['rows'] = $paginatedRows;
+
         return view('content.dashboard.owner', compact('start', 'end', 'engineerId', 'engineers', 'stats', 'statusData', 'review'));
     }
 
@@ -111,7 +139,9 @@ class Analytics extends Controller
             ->where(function ($query) use ($end) {
                 $query->where('quotation_submission_target_date', '<=', $end->copy()->addDays(7))
                     ->orWhere('total_quoted_price', '>=', 500000);
-            })->with('customer')->orderByDesc('total_quoted_price')->limit(5)->get();
+            })->with('customer')->orderByDesc('total_quoted_price')
+            ->paginate($request->integer('per_page', 5))
+            ->withQueryString();
         $risks = [];
         if ($achievement < 80) $risks[] = 'Order booking is below 80% of the monthly target.';
         if ($pipeline < 50000000) $risks[] = 'Active pipeline is below the ₹5 Crore threshold.';

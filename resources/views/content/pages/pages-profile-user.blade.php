@@ -3,7 +3,7 @@
 @section('content')
 <div class="mb-4">
   <h4>My Profile</h4>
-  <p class="text-muted">Manage your account credentials, profile photo, and security.</p>
+  <p class="text-muted">Manage your personal details, credentials, profile photo, and security.</p>
 </div>
 
 @if(session('status'))
@@ -40,6 +40,7 @@
         </div>
         <hr class="my-3">
         <div class="text-start">
+          <div class="mb-2"><strong>Phone:</strong> <span class="text-muted">{{ $profileUser->phone ?: 'Not set' }}</span></div>
           <div class="mb-2"><strong>Department:</strong> <span class="text-muted">{{ $profileUser->department ?: 'General' }}</span></div>
           <div class="mb-2"><strong>Joined:</strong> <span class="text-muted">{{ $profileUser->created_at?->format('d M Y') }}</span></div>
           @if($profileUser->customer)
@@ -63,13 +64,29 @@
 
           <div class="row g-3 mb-3">
             <div class="col-md-6">
-              <label class="form-label" for="name">Full Name</label>
-              <input type="text" class="form-control" id="name" name="name" value="{{ old('name', $profileUser->name) }}" required>
+              <label class="form-label" for="first_name">First Name</label>
+              <input type="text" class="form-control" id="first_name" name="first_name" value="{{ old('first_name', $profileUser->first_name) }}" placeholder="John">
             </div>
+            <div class="col-md-6">
+              <label class="form-label" for="last_name">Last Name</label>
+              <input type="text" class="form-control" id="last_name" name="last_name" value="{{ old('last_name', $profileUser->last_name) }}" placeholder="Doe">
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3">
             <div class="col-md-6">
               <label class="form-label" for="email">Email Address</label>
               <input type="email" class="form-control" id="email" name="email" value="{{ old('email', $profileUser->email) }}" required>
             </div>
+            <div class="col-md-6">
+              <label class="form-label" for="phone">Phone Number</label>
+              <input type="text" class="form-control" id="phone" name="phone" value="{{ old('phone', $profileUser->phone) }}" placeholder="+91 98765 43210">
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="address">Address</label>
+            <textarea class="form-control" id="address" name="address" rows="2" placeholder="Full address">{{ old('address', $profileUser->address) }}</textarea>
           </div>
 
           <div class="mb-3">
@@ -78,7 +95,7 @@
             <small class="text-muted">Allowed JPG, GIF, PNG, WebP. Max size of 2MB.</small>
           </div>
 
-          @if(auth()->user()->isAdmin())
+          @if(auth()->user()->isAdmin() || auth()->user()->isOwner())
             <div class="row g-3 mb-3">
               <div class="col-md-6">
                 <label class="form-label" for="role">Role (Admin only)</label>

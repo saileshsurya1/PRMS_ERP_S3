@@ -77,6 +77,7 @@
       </tbody>
     </table>
   </div>
+  @include('partials.pagination', ['paginator' => $review['rows']])
 </div>
 
 <div class="row g-4 mb-4">@foreach(['salesEngineers' => 'Sales engineers','customers' => 'Customers','activeComplaints' => 'Active complaints','rfqs' => 'RFQs','won' => 'Won orders'] as $key => $label)<div class="col-sm-6 col-xl"><div class="card h-100"><div class="card-body"><small class="text-muted">{{ $label }}</small><h3 class="mt-2 mb-0">{{ $stats[$key] }}</h3></div></div></div>@endforeach</div>

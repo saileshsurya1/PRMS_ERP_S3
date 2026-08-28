@@ -22,14 +22,18 @@ class ProfileController extends Controller
         $user = $request->user();
 
         $rules = [
-            'name' => ['required', 'string', 'max:255'],
+            'first_name' => ['nullable', 'string', 'max:120'],
+            'last_name' => ['nullable', 'string', 'max:120'],
+            'name' => ['nullable', 'string', 'max:255'],
             'email' => ['required', 'email', 'unique:users,email,' . $user->id],
+            'phone' => ['nullable', 'string', 'max:30'],
+            'address' => ['nullable', 'string', 'max:500'],
             'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:2048'],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ];
 
         // Only admins can submit role and department
-        if ($user->isAdmin()) {
+        if ($user->isAdmin() || $user->isOwner()) {
             $rules['role'] = ['nullable', Rule::in(['owner', 'sales_engineer', 'customer'])];
             $rules['department'] = ['nullable', 'string', 'max:120'];
             $rules['status'] = ['nullable', Rule::in(['active', 'inactive'])];
@@ -37,9 +41,13 @@ class ProfileController extends Controller
 
         $data = $request->validate($rules);
 
-        // Self-Service Restrictions: Explicitly strip out role, department, and status if user is not Admin
-        if (!$user->isAdmin()) {
+        // Self-Service Restrictions: Explicitly strip out role, department, and status if user is not Admin/Owner
+        if (!$user->isAdmin() && !$user->isOwner()) {
             unset($data['role'], $data['department'], $data['status'], $data['monthly_target']);
+        }
+
+        if (empty($data['name']) && (!empty($data['first_name']) || !empty($data['last_name']))) {
+            $data['name'] = trim(($data['first_name'] ?? '') . ' ' . ($data['last_name'] ?? ''));
         }
 
         // Handle Photo Upload

@@ -112,10 +112,6 @@
       </tbody>
     </table>
   </div>
-  @if($customers->hasPages())
-    <div class="card-footer">
-      {{ $customers->links() }}
-    </div>
-  @endif
+  @include('partials.pagination', ['paginator' => $customers])
 </div>
 @endsection

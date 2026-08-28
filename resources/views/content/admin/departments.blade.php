@@ -128,11 +128,7 @@
       </tbody>
     </table>
   </div>
-  @if($departments->hasPages())
-    <div class="card-footer">
-      {{ $departments->links() }}
-    </div>
-  @endif
+  @include('partials.pagination', ['paginator' => $departments])
 </div>
 
 {{-- Add Department Modal --}}

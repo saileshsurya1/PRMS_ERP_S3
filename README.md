@@ -1,66 +1,149 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# PRMS ERP — Project Review & Sales Management System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A comprehensive, enterprise-ready ERP web application built with **Laravel**, **Bootstrap 5**, and **MySQL** for managing industrial and B2B sales pipelines, quotations, RFQs, engineer KPI scoring, incentive calculations, customer complaints, and dynamic role-based access control.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🚀 Key Features
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### 1. 🔐 Role-Based Access Control & Menu Permissions
+- **Supported Roles**: `Owner`, `Sales Engineer`, `Customer`.
+- **Owner Role Restriction**: Guaranteed single-owner architecture.
+- **Dynamic Menu Access Matrix**:
+  - **Role-Based Default Access**: Configure which menus each role can access by default.
+  - **User-Specific Overrides**: Granularly grant or revoke menu items for individual users.
+  - **Auto-Restricted Registration**: Newly registered users get access only to the Dashboard and Profile until approved by the Owner.
+- **Active/Inactive Status Guard**: Inactive accounts are blocked at login.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 2. 📊 Timezone-Aware Analytics Dashboard
+- **Local Timezone (IST - `Asia/Kolkata`)**: Calculates time-based dynamic greetings (*Good Morning*, *Good Afternoon*, *Good Evening*, *Good Night*).
+- **Live Seconds Clock**: Real-time ticking digital clock displayed directly in the dashboard header badge.
+- **Scoped Visibility**:
+  - **Owner / Admin**: Full visibility into all company RFQs, quotations, targets, and employee metrics.
+  - **Sales Engineer**: Isolation to view only their assigned customers, RFQs, quotes, and KPI targets.
+  - **Customer**: Dedicated portal view for their own company RFQs and support complaints.
 
-## Learning Laravel
+### 3. 💼 Sales Pipeline & RFQ Register
+- **RFQ Tracking**: Track RFQ numbers, customer links, receipt dates, submission target dates, and statuses (*Follow Up*, *Follow Through*, *Won*, *Lost*, *Cancelled*).
+- **Quotation Management**: Multi-quote tracking per RFQ with target vs. actual submission dates, quoted vs. awarded values, and commercial accuracy logs.
+- **Critical Opportunities Watchlist**: Automatic alerts for high-value quotes and upcoming submission deadlines.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### 4. 🎯 KPI Scoring & Incentive Engine
+- **Daily Activity Logging**: Track daily customer calls, follow-ups, physical visits, online meetings, and CRM updates.
+- **Automated Incentive Slabs**:
+  - `< 80%` Achievement: **0× (No Incentive)**
+  - `80% – 99%` Achievement: **1× (Standard)**
+  - `100% – 110%` Achievement: **1.5×**
+  - `> 110%` Achievement: **2× (Accelerated)**
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### 5. 🏢 Customer & Complaint Management
+- Full customer directory with contact persons, company logos, and assigned sales engineers.
+- Customer support complaint ticketing with lifecycle status updates (*Open* → *In Progress* → *Resolved*).
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 6. 📄 Universal Standardized Pagination
+- Dynamic record selection on every data table: **`5, 10, 25, 50, 100, 200, 500`** entries per page.
+- Clean Bootstrap 5 pagination controls with record counters and query string retention.
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+## 🛠️ Technology Stack
 
-### Premium Partners
+- **Backend**: PHP 8.2+, Laravel 11
+- **Database**: MySQL 8.0+
+- **Frontend**: Blade, Bootstrap 5, Sneat / Materialize UI, Chart.js, ApexCharts
+- **Build Tool**: Vite / Laravel Mix, NPM
+- **Containerization**: Docker (Alpine + Nginx + PHP-FPM)
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+---
 
-## Contributing
+## 🔑 Default Credentials (Seeded)
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+| Role | Email | Password | Target / Access |
+| :--- | :--- | :--- | :--- |
+| **Owner** | `owner@prms.test` | `password` | Full System Access |
+| **Sales Engineer 1** | `engineer1@prms.test` | `password` | ₹ 1.00 Cr Target, Linked to CUST-DEMO-001 |
+| **Sales Engineer 2** | `engineer2@prms.test` | `password` | ₹ 1.00 Cr Target, Linked to CUST-DEMO-002 |
+| **Customer** | `customer@prms.test` | `password` | Customer Portal for CUST-DEMO-001 |
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## 💻 Local Setup & Installation
 
-## Security Vulnerabilities
+### Prerequisites
+- PHP 8.2 or higher
+- Composer
+- Node.js & NPM
+- MySQL
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### Step-by-Step Instructions
 
-## License
+1. **Clone the repository**:
+   ```bash
+   git clone <repository-url>
+   cd ERP_S3
+   ```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+2. **Install Dependencies**:
+   ```bash
+   composer install
+   npm install
+   npm run build # or npm run prod
+   ```
+
+3. **Configure Environment**:
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+   *Edit `.env` and configure your database credentials (`DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`) and `APP_TIMEZONE=Asia/Kolkata`.*
+
+4. **Storage Symlink**:
+   ```bash
+   php artisan storage:link
+   ```
+
+5. **Run Migrations & Seeders**:
+   ```bash
+   php artisan migrate --seed
+   ```
+
+6. **Start the Local Development Server**:
+   ```bash
+   php artisan serve
+   ```
+   Open `http://127.0.0.1:8000` in your web browser.
+
+---
+
+## 🐳 Docker Deployment
+
+The project includes an optimized production [`Dockerfile`](./Dockerfile) using Alpine Linux, Nginx, and PHP-FPM.
+
+### Build and Run with Docker
+
+```bash
+# 1. Build the Docker image
+docker build -t prms-erp .
+
+# 2. Run container
+docker run -d -p 80:80 \
+  -e DB_HOST=your-db-host \
+  -e DB_DATABASE=prms_db \
+  -e DB_USERNAME=your-user \
+  -e DB_PASSWORD=your-password \
+  --name prms-app prms-erp
+```
+
+### Automated Startup Sequence in Container:
+The container automatically runs:
+1. `php artisan config:clear && php artisan cache:clear && php artisan view:clear && php artisan route:clear`
+2. `php artisan storage:link --force`
+3. `php artisan migrate --force && php artisan db:seed --force`
+4. `php artisan config:cache && php artisan route:cache && php artisan view:cache`
+5. Starts PHP-FPM and Nginx web server concurrently.
+
+---
+
+## 🛡️ License
+
+This project is proprietary enterprise software developed for PRMS. All rights reserved.

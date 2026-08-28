@@ -18,7 +18,7 @@ class CustomerComplaintController extends Controller
             ->when($user->isSalesEngineer(), fn ($query) => $query->where('sales_engineer_id', $user->id))
             ->when($request->filled('status'), fn ($query) => $query->where('status', $request->string('status')))
             ->latest('reported_date')
-            ->paginate(15)
+            ->paginate($request->integer('per_page', 10))
             ->withQueryString();
 
         return view('content.sales.complaints', [

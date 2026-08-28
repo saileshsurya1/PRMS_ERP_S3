@@ -14,7 +14,7 @@ RUN apk add --no-cache \
     nodejs \
     npm
 
-# Install exact PHP native extensions required for Laravel 12 & MySQL database pipelines
+# Install exact PHP native extensions required for Laravel & MySQL database pipelines
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 
 # Fetch the exact production-ready Composer utility binary safely
@@ -34,7 +34,8 @@ RUN npm install
 RUN npm run prod
 
 # Enforce explicit standard write/cache directory permissions for Alpine processes
-RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache \
+    && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
 # Bind the custom Nginx server runtime blocks 
 COPY ./nginx.conf /etc/nginx/nginx.conf
@@ -42,5 +43,16 @@ COPY ./nginx.conf /etc/nginx/nginx.conf
 # Bind exposure targeting default HTTP web process layers 
 EXPOSE 80
 
-# Automate migrations sequentially before invoking Nginx & PHP FPM listeners concurrently
-CMD php artisan migrate --force && php-fpm -D && nginx -g "daemon off;"
+# Automate cache clearing, storage symlink, migrations, seeding, and cache compilation on container deployment
+CMD php artisan config:clear \
+    && php artisan cache:clear \
+    && php artisan view:clear \
+    && php artisan route:clear \
+    && php artisan storage:link --force \
+    && php artisan migrate --force \
+    && php artisan db:seed --force \
+    && php artisan config:cache \
+    && php artisan route:cache \
+    && php artisan view:cache \
+    && php-fpm -D \
+    && nginx -g "daemon off;"

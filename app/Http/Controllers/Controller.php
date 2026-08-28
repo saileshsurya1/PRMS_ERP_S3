@@ -13,7 +13,7 @@ class Controller extends BaseController
     /**
      * Log user activity, filtering out GET/view requests.
      */
-    protected function audit(string $action, string $subjectType, int $subjectId, array $details = []): void
+    protected function audit(string $action, string $subjectType = 'App\\Models\\User', ?int $subjectId = null, array $details = []): void
     {
         // Only log mutating requests: POST, PUT, PATCH, DELETE
         if (request()->isMethod('GET') || str_starts_with($action, 'viewed_')) {
@@ -25,7 +25,7 @@ class Controller extends BaseController
                 'user_id' => auth()->id(),
                 'action' => $action,
                 'subject_type' => $subjectType,
-                'subject_id' => $subjectId,
+                'subject_id' => $subjectId ?? auth()->id(),
                 'details' => $details,
             ]);
         }

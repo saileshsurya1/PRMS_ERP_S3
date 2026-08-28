@@ -19,7 +19,43 @@
   <div class="col-xl-4"><div class="card h-100"><div class="card-header"><h5 class="mb-0">Daily activity</h5></div><div class="card-body"><div class="d-flex justify-content-between py-2"><span>Customer calls</span><strong>{{ $daily->sum('customer_calls') }} / 15 daily</strong></div><div class="d-flex justify-content-between py-2"><span>Follow-up calls</span><strong>{{ $daily->sum('follow_up_calls') }} / 20 daily</strong></div><div class="d-flex justify-content-between py-2"><span>Visits</span><strong>{{ $daily->sum('customer_visits') }} / 2 daily</strong></div><div class="d-flex justify-content-between py-2"><span>Online meetings</span><strong>{{ $daily->sum('online_meetings') }} / 2 daily</strong></div><div class="d-flex justify-content-between py-2"><span>CRM updates</span><strong>{{ $daily->where('crm_updated', true)->count() }} days</strong></div><a href="{{ route('sales.daily-log') }}" class="btn btn-outline-primary w-100 mt-3">Open KPI log</a></div></div></div>
 </div>
 <div class="row g-4">
-  <div class="col-xl-8"><div class="card"><div class="card-header d-flex justify-content-between"><h5 class="mb-0">Critical opportunities</h5><a href="{{ route('sales.rfqs') }}">View RFQs</a></div><div class="table-responsive"><table class="table"><thead><tr><th>RFQ</th><th>Customer</th><th>Value</th><th>Due date</th><th>Status</th></tr></thead><tbody>@forelse($critical as $rfq)<tr><td>{{ $rfq->rfq_number }}</td><td>{{ $rfq->customer->company_name }}</td><td>{{ $currency($rfq->total_quoted_price) }}</td><td>{{ $rfq->quotation_submission_target_date?->format('d M Y') ?: 'Not set' }}</td><td><span class="badge bg-label-warning">{{ ucfirst(str_replace('_', ' ', $rfq->current_status)) }}</span></td></tr>@empty<tr><td colspan="5" class="text-center text-muted py-4">No critical opportunities</td></tr>@endforelse</tbody></table></div></div></div>
+  <div class="col-xl-8">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between">
+        <h5 class="mb-0">Critical opportunities</h5>
+        <a href="{{ route('sales.rfqs') }}">View RFQs</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>RFQ</th>
+              <th>Customer</th>
+              <th>Value</th>
+              <th>Due date</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            @forelse($critical as $rfq)
+              <tr>
+                <td>{{ $rfq->rfq_number }}</td>
+                <td>{{ $rfq->customer->company_name }}</td>
+                <td>{{ $currency($rfq->total_quoted_price) }}</td>
+                <td>{{ $rfq->quotation_submission_target_date?->format('d M Y') ?: 'Not set' }}</td>
+                <td><span class="badge bg-label-warning">{{ ucfirst(str_replace('_', ' ', $rfq->current_status)) }}</span></td>
+              </tr>
+            @empty
+              <tr>
+                <td colspan="5" class="text-center text-muted py-4">No critical opportunities</td>
+              </tr>
+            @endforelse
+          </tbody>
+        </table>
+      </div>
+      @include('partials.pagination', ['paginator' => $critical])
+    </div>
+  </div>
   <div class="col-xl-4"><div class="card h-100"><div class="card-header"><h5 class="mb-0">Risks affecting target</h5></div><div class="card-body">@forelse($risks as $risk)<div class="d-flex gap-2 mb-3"><i class="mdi mdi-alert-circle-outline text-danger mdi-20px"></i><span>{{ $risk }}</span></div>@empty<div class="text-success"><i class="mdi mdi-check-circle-outline me-1"></i>No active risks</div>@endforelse</div></div></div>
 </div>
 @endsection

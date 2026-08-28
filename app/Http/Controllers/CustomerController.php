@@ -144,7 +144,7 @@ class CustomerController extends Controller
                 });
             })
             ->latest()
-            ->paginate(15)
+            ->paginate($request->integer('per_page', 10))
             ->withQueryString();
 
         return view('content.sales.customers', compact('customers'));

@@ -238,11 +238,7 @@
       </tbody>
     </table>
   </div>
-  @if($todos->hasPages())
-    <div class="card-footer">
-      {{ $todos->links() }}
-    </div>
-  @endif
+  @include('partials.pagination', ['paginator' => $todos])
 </div>
 
 {{-- Add Task Modal --}}

@@ -20,7 +20,7 @@ class DepartmentController extends Controller
                     ->orWhere('description', 'like', "%{$search}%");
             })
             ->latest()
-            ->paginate(15)
+            ->paginate($request->integer('per_page', 10))
             ->withQueryString();
 
         return view('content.admin.departments', compact('departments'));

@@ -104,5 +104,6 @@ Route::middleware(['auth', 'menu.access'])->group(function () {
         Route::post('/menus/{menu}/access', [AdminController::class, 'storeAccess'])->name('menus.access.store');
         Route::get('/menu-access', [AdminController::class, 'access'])->name('menu-access');
         Route::post('/menu-access', [AdminController::class, 'updateAccess'])->name('menu-access.update');
+        Route::post('/menu-access/role', [AdminController::class, 'updateRoleAccess'])->name('menu-access.role.update');
     });
 });

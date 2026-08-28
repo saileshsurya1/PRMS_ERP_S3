@@ -32,7 +32,7 @@ class SalesController extends Controller
         return back()->with('status', 'Customer saved.');
     }
 
-    public function rfqs()
+    public function rfqs(Request $request)
     {
         $user = auth()->user();
         $query = Rfq::with(['customer', 'salesEngineer'])->latest('rfq_received_date');
@@ -40,7 +40,7 @@ class SalesController extends Controller
             $query->where('sales_engineer_id', $user->id);
         }
         $customers = Customer::when($user->isSalesEngineer(), fn ($query) => $query->where('assigned_sales_engineer_id', $user->id)->orWhere('sales_engineer_id', $user->id))->orderBy('company_name')->get();
-        return view('content.sales.rfqs', ['rfqs' => $query->paginate(15)->withQueryString(), 'customers' => $customers]);
+        return view('content.sales.rfqs', ['rfqs' => $query->paginate($request->integer('per_page', 10))->withQueryString(), 'customers' => $customers]);
     }
 
     public function storeRfq(Request $request)
@@ -121,13 +121,13 @@ class SalesController extends Controller
         return redirect()->route('sales.rfqs')->with('status', 'RFQ deleted successfully.');
     }
 
-    public function quotations()
+    public function quotations(Request $request)
     {
         $user = auth()->user();
         $quotations = Quotation::with('rfq.customer')
             ->when($user->isSalesEngineer() && !$user->isAdmin(), fn ($query) => $query->whereHas('rfq', fn ($rfq) => $rfq->where('sales_engineer_id', $user->id)))
             ->latest()
-            ->paginate(15)->withQueryString();
+            ->paginate($request->integer('per_page', 10))->withQueryString();
         $rfqs = Rfq::when($user->isSalesEngineer() && !$user->isAdmin(), fn ($query) => $query->where('sales_engineer_id', $user->id))
             ->orderByDesc('rfq_received_date')
             ->get();
@@ -202,9 +202,9 @@ class SalesController extends Controller
         return back()->with('status', 'Quotation deleted.');
     }
 
-    public function dailyLog()
+    public function dailyLog(Request $request)
     {
-        return view('content.sales.daily-log', ['logs' => DailyActivityLog::where('sales_engineer_id', auth()->id())->latest('activity_date')->paginate(15)->withQueryString()]);
+        return view('content.sales.daily-log', ['logs' => DailyActivityLog::where('sales_engineer_id', auth()->id())->latest('activity_date')->paginate($request->integer('per_page', 10))->withQueryString()]);
     }
 
     public function storeDailyLog(Request $request)

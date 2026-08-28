@@ -121,5 +121,6 @@
       </tbody>
     </table>
   </div>
+  @include('partials.pagination', ['paginator' => $menus])
 </div>
 @endsection

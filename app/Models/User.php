@@ -20,7 +20,11 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'first_name',
+        'last_name',
         'email',
+        'phone',
+        'address',
         'password',
         'role',
         'status',
@@ -53,6 +57,15 @@ class User extends Authenticatable
         'joined_date' => 'date',
     ];
 
+    protected static function booted(): void
+    {
+        static::saving(function ($user) {
+            if (!empty($user->first_name) || !empty($user->last_name)) {
+                $user->name = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''));
+            }
+        });
+    }
+
     /**
      * The accessors to append to the model's array form.
      *
@@ -69,6 +82,16 @@ class User extends Authenticatable
         }
 
         return asset('assets/img/avatars/1.png');
+    }
+
+    public function getNameAttribute($value): string
+    {
+        if (!empty($value)) {
+            return $value;
+        }
+
+        $combined = trim(($this->first_name ?? '') . ' ' . ($this->last_name ?? ''));
+        return $combined !== '' ? $combined : 'User';
     }
 
     public function isAdmin(): bool
